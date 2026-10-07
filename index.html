@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>ID Corner Rounder</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='22' width='84' height='56' rx='14' fill='%231B6B4A'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<style>
+:root{--bg:#EDF0EA;--panel:#F8F9F5;--ink:#17251F;--mute:#56665E;--line:#C9D1C7;--accent:#1B6B4A;--on:#fff;--ck1:#dfe4dc;--ck2:#eef1ea;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101713;--panel:#18221C;--ink:#E6EEE8;--mute:#93A59A;--line:#2C3A31;--accent:#4FC08D;--on:#06130c;--ck1:#1c2620;--ck2:#222e27}}
+:root[data-theme="dark"]{--bg:#101713;--panel:#18221C;--ink:#E6EEE8;--mute:#93A59A;--line:#2C3A31;--accent:#4FC08D;--on:#06130c;--ck1:#1c2620;--ck2:#222e27}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.05;font-weight:800;letter-spacing:-.02em;margin:8px 0 10px;max-width:16ch}
+h2{font-size:22px;margin:0 0 12px;letter-spacing:-.01em}
+.lead{color:var(--mute);margin:0 0 22px;max-width:56ch}
+.grid{display:grid;gap:16px}
+@media(min-width:880px){.grid{grid-template-columns:1fr 330px;align-items:start}}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tabs{display:flex;gap:6px}.tabs button.on{background:var(--accent);color:var(--on);border-color:var(--accent)}
+.stage{position:relative;border:1px solid var(--line);border-radius:14px;min-height:300px;display:grid;place-items:center;padding:22px 22px 70px;background:#fff}
+.stage[data-bg=dark]{background:#121212}
+.stage[data-bg=check]{background:conic-gradient(var(--ck1) 25%,var(--ck2) 0 50%,var(--ck1) 0 75%,var(--ck2) 0) 0 0/20px 20px}
+.stage.drag{outline:3px dashed var(--accent);outline-offset:-8px}
+#out{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;display:none;max-width:100%;max-height:60vh;width:auto;height:auto}
+.has #out{display:block}.has .empty{display:none}.has .nudge{display:flex}
+.empty{text-align:center;max-width:340px;background:var(--panel);padding:22px;border-radius:14px;border:1px solid var(--line)}
+.demo{position:relative;width:180px;height:114px;margin:0 auto 16px}
+.demo i{position:absolute;inset:0;border:2px dashed var(--mute);opacity:.6}
+.demo b{position:absolute;inset:8px;border-radius:14px;background:var(--accent)}
+.empty p{margin:0 0 14px;color:var(--mute);font-size:15px}
+.nudge{display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;align-items:center}
+.nudge button{width:40px;min-height:40px;padding:0;display:grid;place-items:center;touch-action:manipulation}
+.nudge .gap{width:1px;height:26px;background:var(--line);margin:0 2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+button{font:600 15px/1 inherit;font-family:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:12px 14px;border-radius:10px;cursor:pointer;min-height:44px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+button.pri{background:var(--accent);color:var(--on);border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+:is(button,input,label,select):focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{display:none;margin-top:12px;gap:8px;flex-wrap:wrap;align-items:center}.has .bar{display:flex}
+.info{color:var(--mute);font-size:14px;margin-left:auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:18px}
+.t{display:flex;justify-content:space-between;font-weight:600;font-size:15px;margin-bottom:6px}
+.t span{color:var(--mute);font-weight:400}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+input[type=color]{width:44px;height:44px;border:1px solid var(--line);border-radius:10px;padding:2px;background:var(--panel)}
+select,input[type=number],input[type=text]{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);min-height:44px;width:100%}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chips button{padding:8px 10px;min-height:36px;font-size:14px;font-weight:400}
+.seg{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.seg label{position:relative}
+.seg input[type=radio]{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg span{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;min-height:44px;line-height:22px;background:var(--panel)}
+.seg input:checked+span{background:var(--accent);color:var(--on);border-color:var(--accent)}
+.seg input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.pb span{padding:7px 10px;min-height:36px;line-height:20px;font-size:13px}
+.step{display:flex;gap:8px;align-items:center}.step input[type=range]{flex:1}
+.sb{width:44px;padding:0;flex:none;font-size:22px;line-height:1}
+.tg{display:flex;gap:10px;align-items:center;min-height:44px;font-weight:600;font-size:15px}
+.tg input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.inl{display:none;gap:8px;margin-top:8px;align-items:center}.inl input{width:96px}
+.pdf{margin-top:20px;display:grid;gap:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+@media(min-width:760px){.pdf{grid-template-columns:1fr 340px;align-items:start}}
+.pdf .f+.f{margin-top:16px}
+.pg{position:relative;aspect-ratio:210/297;background:#fff;width:100%;max-width:340px;margin:auto;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 4px 16px rgba(0,0,0,.25);overflow:hidden}
+.cd{position:absolute;outline:1px solid rgba(0,0,0,.2);cursor:grab;display:grid;place-items:center;color:#5b665f;font-size:13px;overflow:hidden}
+.cd.e{background:#e9ece7}.cd.e::after{content:attr(data-l)}
+.cd canvas{display:block;width:100%;height:100%}.cd.e canvas{display:none}
+.cd:focus-visible{outline:2px solid var(--accent)}
+.gl{position:absolute;background:#e0239a;display:none;pointer-events:none}.gv{top:0;bottom:0;width:1px}.gh{left:0;right:0;height:1px}
+.rd{color:var(--mute);font-size:13px;margin:12px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
+.toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Round the corners of your ID photo</h1>
+<p class="lead">Give photos of Aadhaar, PAN, Voter ID and other cards their real rounded shape. Everything runs in your browser, so photos never leave your device.</p>
+
+<div class="grid">
+<section>
+  <div class="top">
+    <div class="tabs" id="tabs"><button data-s="0" class="on">Front side</button><button data-s="1">Back side</button></div>
+    <div class="seg pb" role="radiogroup" aria-label="Preview background"><label><input type="radio" name="pbg" value="white" checked><span>White</span></label><label><input type="radio" name="pbg" value="dark"><span>Dark</span></label><label><input type="radio" name="pbg" value="check"><span>Checker</span></label></div>
+  </div>
+  <div class="stage" id="stage" data-bg="white">
+    <div class="empty">
+      <div class="demo" aria-hidden="true"><i></i><b></b></div>
+      <p id="ep"></p>
+      <div class="row"><button class="pri" id="cam">Take photo</button><button id="pick">Choose image</button></div>
+    </div>
+    <canvas id="out" aria-label="Preview of your ID card with rounded corners"></canvas>
+    <div class="nudge" id="nudge" role="group" aria-label="Move or zoom the photo">
+      <button data-m="-1,0" aria-label="Move photo left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button data-m="0,-1" aria-label="Move photo up"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg></button>
+      <button data-m="0,1" aria-label="Move photo down"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>
+      <button data-m="1,0" aria-label="Move photo right"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      <i class="gap"></i>
+      <button data-z="-0.1" aria-label="Zoom out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+      <button data-z="0.1" aria-label="Zoom in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg></button>
+    </div>
+  </div>
+  <div class="bar">
+    <button class="pri" id="dl">Download</button>
+    <button id="copy">Copy</button>
+    <button id="rot">Rotate</button>
+    <button id="cmp">Hold for original</button>
+    <button id="new">Replace photo</button>
+    <span class="info" id="info"></span>
+  </div>
+</section>
+
+<aside class="panel" aria-label="Settings">
+  <div class="f">
+    <label class="t" for="size">Card size</label>
+    <select id="size"><option value="s">Standard card (85.6 × 54 mm)</option><option value="c">Custom size</option><option value="o">Original photo size</option></select>
+    <div id="cust" class="inl"><input type="number" id="cw" value="85.6" step="0.1" min="20" max="200" aria-label="Width in mm"> × <input type="number" id="ch" value="54" step="0.1" min="20" max="140" aria-label="Height in mm"> mm</div>
+    <div id="orig" class="inl">Print width <input type="number" id="ow" value="85.6" step="0.1" min="20" max="200" aria-label="Print width in mm"> mm</div>
+  </div>
+  <div class="f">
+    <label class="t" for="radius">Corner roundness <span id="radiusV"></span></label>
+    <div class="step"><button class="sb" data-for="radius" data-d="-0.5" aria-label="Decrease corner roundness">−</button><input type="range" id="radius" min="0" max="20" step="0.1" value="3.7"><button class="sb" data-for="radius" data-d="0.5" aria-label="Increase corner roundness">+</button></div>
+    <div class="chips" id="presets"><button data-v="3.7">Standard card</button><button data-v="6">Soft</button><button data-v="10">Very round</button></div>
+  </div>
+  <div class="f">
+    <label class="t" for="trim">Trim and zoom <span id="trimV"></span></label>
+    <div class="step"><button class="sb" data-for="trim" data-d="-0.1" aria-label="Zoom out">−</button><input type="range" id="trim" min="0" max="30" step="0.1" value="0"><button class="sb" data-for="trim" data-d="0.1" aria-label="Zoom in">+</button></div>
+  </div>
+  <div class="f"><label class="tg"><input type="checkbox" id="pz"> Move and zoom photo by touch</label></div>
+  <div class="f">
+    <label class="tg"><input type="checkbox" id="ol"> Thin outline</label>
+    <div id="olo" style="display:none">
+      <div class="step"><button class="sb" data-for="olw" data-d="-0.05" aria-label="Thinner outline">−</button><input type="range" id="olw" min="0.05" max="1.2" step="0.05" value="0.35" aria-label="Outline thickness"><button class="sb" data-for="olw" data-d="0.05" aria-label="Thicker outline">+</button></div>
+      <div class="seg" style="margin-top:8px"><label for="olc" style="font-size:14px">Outline color</label><input type="color" id="olc" value="#bfc6bc"></div>
+    </div>
+  </div>
+  <div class="f">
+    <div class="t">File type</div>
+    <div class="seg" role="radiogroup" aria-label="File type"><label><input type="radio" name="fmt" value="png" checked><span>PNG</span></label><label><input type="radio" name="fmt" value="jpg"><span>JPG</span></label></div>
+  </div>
+  <button id="reset">Reset settings</button>
+</aside>
+</div>
+
+<section class="pdf" aria-label="Print on A4">
+  <div>
+    <h2>Print both sides on A4</h2>
+    <div class="f">
+      <label class="t" for="mg">Top and bottom margin <span id="mgV"></span></label>
+      <div class="step"><button class="sb" data-for="mg" data-d="-0.5" aria-label="Smaller margin">−</button><input type="range" id="mg" min="5" max="94" step="0.5" value="51"><button class="sb" data-for="mg" data-d="0.5" aria-label="Larger margin">+</button></div>
+    </div>
+    <div class="f">
+      <label class="t" for="fn">File name</label>
+      <input type="text" id="fn" value="id-cards" maxlength="60" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="row" style="justify-content:flex-start;margin-top:16px"><button class="pri" id="pdf">Download PDF</button><button id="pimg">Save as image</button><button id="lr">Reset layout</button></div>
+    <p class="rd" id="rd"></p>
+  </div>
+  <div class="pg" id="pg"><div class="cd e" data-i="0" data-l="Front" tabindex="0" aria-label="Front card position"><canvas></canvas></div><div class="cd e" data-i="1" data-l="Back" tabindex="0" aria-label="Back card position"><canvas></canvas></div><i class="gl gv" id="gv"></i><i class="gl gh" id="gh"></i></div>
+</section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="f1" accept="image/*" hidden>
+<input type="file" id="f2" accept="image/*" capture="environment" hidden>
+
+<script>
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+const MAX=3600,PREV=1100,DPI=600,PW=210,PH=297;
+const DEF={trim:0,cx:.5,cy:.5,radius:3.7,fmt:'png',ol:false,olw:.35,olc:'#bfc6bc'};
+const S={...DEF,base:null,compare:false,name:'id-front',cw:85.6,ch:54,ow:85.6,mode:'card',pz:true};
+const F=['base','trim','cx','cy','name'];
+const sides=[{base:null,trim:0,cx:.5,cy:.5,name:'id-front'},{base:null,trim:0,cx:.5,cy:.5,name:'id-back'}];
+let cur=0;
+const L={m:51,pos:[{x:0,y:0},{x:0,y:0}]};
+const out=$('#out'),pg=$('#pg');
+let dl=null;
+try{if(window.claude&&claude.use)claude.use('downloads').then(d=>dl=d).catch(()=>{})}catch(e){}
+const sync=()=>F.forEach(k=>sides[cur][k]=S[k]);
+const side=i=>i===cur?S:sides[i];
+const free=c=>{if(c){c.width=c.height=0}};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2600)}
+function rrc(c,x,y,w,h,r){c.beginPath();if(c.roundRect){c.roundRect(x,y,w,h,r)}else{c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}}
+
+// ---------- loading ----------
+async function decode(file){
+  if(window.createImageBitmap){try{const b=await createImageBitmap(file,{imageOrientation:'from-image'});return{src:b,w:b.width,h:b.height,done:()=>b.close()}}catch(e){}}
+  return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>res({src:im,w:im.naturalWidth,h:im.naturalHeight,done:()=>URL.revokeObjectURL(u)});im.onerror=rej;im.src=u});
+}
+async function load(file){
+  if(!file||!file.type.startsWith('image/')){toast('Choose an image file: JPG, PNG or WebP.');return}
+  try{
+    const d=await decode(file),k=Math.min(1,MAX/Math.max(d.w,d.h)),b=document.createElement('canvas');
+    b.width=Math.round(d.w*k);b.height=Math.round(d.h*k);
+    const c=b.getContext('2d');c.imageSmoothingQuality='high';c.drawImage(d.src,0,0,b.width,b.height);d.done();
+    free(S.base);S.base=b;S.trim=0;S.cx=S.cy=.5;S.name=file.name.replace(/\.[^.]+$/,'')||'id-card';
+    document.body.classList.add('has');afterSize();render();
+  }catch(e){toast('That image could not be opened. Try another file.')}
+}
+function rotate(){
+  if(!S.base)return;const p=S.base,b=document.createElement('canvas');b.width=p.height;b.height=p.width;
+  const c=b.getContext('2d');c.translate(b.width/2,b.height/2);c.rotate(Math.PI/2);c.drawImage(p,-p.width/2,-p.height/2);
+  free(p);S.base=b;S.cx=S.cy=.5;afterSize();render();
+}
+
+// ---------- view and drawing ----------
+const aspOf=o=>S.mode==='orig'?o.base.width/o.base.height:S.cw/S.ch;
+function win0(o){const b=o.base,a=aspOf(o),w=Math.min(b.width,b.height*a);return{w,h:w/a}}
+function view(o=S){
+  const b=o.base,m=win0(o),k=1-2*o.trim/100,sw=m.w*k,sh=m.h*k;
+  return{sx:clamp(o.cx*b.width-sw/2,0,b.width-sw),sy:clamp(o.cy*b.height-sh/2,0,b.height-sh),sw,sh};
+}
+function setView(sx,sy,sw,sh){S.cx=(sx+sw/2)/S.base.width;S.cy=(sy+sh/2)/S.base.height}
+function zoomTo(tp,fx,fy){
+  tp=clamp(Math.round(tp*100)/100,0,30);const v=view(),px=v.sx+fx*v.sw,py=v.sy+fy*v.sh,m=win0(S);
+  S.trim=tp;const k=1-2*tp/100,sw=m.w*k,sh=m.h*k;
+  setView(px-fx*sw,py-fy*sh,sw,sh);render();
+}
+function zoomBy(f,fx,fy){const z=1/(1-2*S.trim/100),z2=clamp(z*f,1,2.5);zoomTo((1-1/z2)/2*100,fx,fy)}
+function nudge(dx,dy){if(!S.base)return;const v=view(),k=v.sw/out.width;setView(v.sx-dx*k,v.sy-dy*k,v.sw,v.sh);render()}
+function paintCard(c,o,x,y,w,h,sharp){
+  const v=view(o),r=sharp?0:Math.min(S.radius/100*w,h/2);
+  c.save();rrc(c,x,y,w,h,r);c.clip();c.imageSmoothingQuality='high';c.drawImage(o.base,v.sx,v.sy,v.sw,v.sh,x,y,w,h);
+  if(S.ol&&!sharp){c.lineWidth=S.olw/100*w*2;c.strokeStyle=S.olc;rrc(c,x,y,w,h,r);c.stroke()}
+  c.restore();
+}
+function drawCard(o,cv,bg,maxW,sharp){
+  const v=view(o);if(o===S)setView(v.sx,v.sy,v.sw,v.sh);
+  let w=Math.round(v.sw),h=Math.round(v.sh);
+  if(maxW&&w>maxW){h=Math.round(h*maxW/w);w=maxW}
+  if(cv.width!==w)cv.width=w;if(cv.height!==h)cv.height=h;
+  const c=cv.getContext('2d');c.clearRect(0,0,w,h);
+  if(bg){c.fillStyle=bg;c.fillRect(0,0,w,h)}
+  paintCard(c,o,0,0,w,h,sharp);return v;
+}
+const capW=i=>Math.round(csz(i).w/25.4*DPI);
+function render(){
+  if(!S.base)return;
+  const v=drawCard(S,out,null,PREV,S.compare);
+  $('#info').textContent=Math.round(v.sw)+' × '+Math.round(v.sh)+' px · '+Math.round(Math.min(v.sw,capW(cur))/(csz(cur).w/25.4))+' dpi when printed';
+  $('#radiusV').textContent=S.radius.toFixed(1)+'%';
+  $('#trimV').textContent='×'+(1/(1-2*S.trim/100)).toFixed(3)+' · '+S.trim.toFixed(1)+'%';
+  $('#trim').value=S.trim;
+  if(!S.compare)queueThumb();
+}
+
+// ---------- saving ----------
+const fname=()=>($('#fn').value||'').replace(/[\\/:*?"<>|]+/g,'').trim()||'id-cards';
+async function saveBlob(b,name){
+  if(dl){try{await dl.save({filename:name,data:b})}catch(e){if(!e||e.code!=='declined')toast('Could not save the file. Try again.')}return}
+  const a=document.createElement('a'),u=URL.createObjectURL(b);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+const toBlob=(c,type,q)=>new Promise(r=>c.toBlob(r,type,q));
+async function saveCard(){
+  if(!S.base)return;const jpg=S.fmt==='jpg',c=document.createElement('canvas');
+  drawCard(S,c,jpg?'#ffffff':null,capW(cur),false);const b=await toBlob(c,jpg?'image/jpeg':'image/png',.95);free(c);
+  saveBlob(b,S.name+'-rounded.'+(jpg?'jpg':'png'));
+}
+async function copyCard(){
+  if(!S.base)return;const c=document.createElement('canvas');drawCard(S,c,null,capW(cur),false);const b=await toBlob(c,'image/png');free(c);
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);toast('Copied. Paste it into a chat or document.')}
+  catch(e){toast('Copying is blocked here. Use Download instead.')}
+}
+
+// ---------- controls ----------
+function setVal(k,n){if(k==='trim')zoomTo(n,.5,.5);else if(k==='mg')setMargin(n);else{S[k]=n;$('#'+k).value=n;render()}}
+document.querySelectorAll('.sb').forEach(b=>b.onclick=()=>{const k=b.dataset.for,el=$('#'+k);setVal(k,clamp(Math.round((+el.value+ +b.dataset.d)*100)/100,+el.min,+el.max))});
+['radius','olw'].forEach(k=>$('#'+k).addEventListener('input',e=>{S[k]=+e.target.value;render()}));
+$('#trim').addEventListener('input',e=>zoomTo(+e.target.value,.5,.5));
+$('#mg').addEventListener('input',e=>setMargin(+e.target.value));
+$('#olc').addEventListener('input',e=>{S.olc=e.target.value;render()});
+$('#ol').addEventListener('change',e=>{S.ol=e.target.checked;$('#olo').style.display=S.ol?'block':'none';render()});
+$('#presets').addEventListener('click',e=>{const v=e.target.dataset.v;if(v)setVal('radius',+v)});
+document.querySelectorAll('input[name=fmt]').forEach(i=>i.addEventListener('change',()=>{S.fmt=i.value}));
+document.querySelectorAll('input[name=pbg]').forEach(i=>i.addEventListener('change',()=>{$('#stage').dataset.bg=i.value}));
+$('#reset').onclick=()=>{Object.assign(S,DEF);
+  $('#radius').value=DEF.radius;$('#trim').value=0;$('#ol').checked=false;$('#olw').value=DEF.olw;$('#olc').value=DEF.olc;$('#olo').style.display='none';
+  document.querySelector('input[name=fmt][value=png]').checked=true;render()};
+$('#rot').onclick=rotate;$('#dl').onclick=saveCard;$('#copy').onclick=copyCard;
+const cmp=$('#cmp');
+['pointerdown','keydown'].forEach(ev=>cmp.addEventListener(ev,e=>{if(ev==='keydown'&&e.key!==' '&&e.key!=='Enter')return;S.compare=true;render()}));
+['pointerup','pointerleave','pointercancel','keyup','blur'].forEach(ev=>cmp.addEventListener(ev,()=>{if(S.compare){S.compare=false;render()}}));
+cmp.addEventListener('contextmenu',e=>e.preventDefault());
+
+// move and zoom by touch (remembered)
+function applyPz(){out.style.touchAction=S.pz?'none':'auto';out.style.cursor=S.pz?'grab':'default'}
+try{S.pz=localStorage.getItem('idr.pz')!=='0'}catch(e){}
+$('#pz').checked=S.pz;applyPz();
+$('#pz').onchange=e=>{S.pz=e.target.checked;try{localStorage.setItem('idr.pz',S.pz?'1':'0')}catch(_){}applyPz()};
+
+// precision buttons beside the canvas (hold to repeat)
+let rp;const stopRp=()=>{clearTimeout(rp);clearInterval(rp)};
+function nudgeAct(b){const d=b.dataset;if(d.m){const[x,y]=d.m.split(',').map(Number);nudge(x,y)}else if(d.z&&S.base)zoomTo(S.trim+ +d.z,.5,.5)}
+const nd=$('#nudge');
+nd.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();nudgeAct(b);rp=setTimeout(()=>{rp=setInterval(()=>nudgeAct(b),60)},380)});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>nd.addEventListener(ev,stopRp));
+nd.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&e.detail===0)nudgeAct(b)});
+
+// drag, pinch and wheel on the photo
+const P=new Map();let last=null;
+function gesture(){const p=[...P.values()],n=p.length;if(!n)return null;
+  return{n,x:p.reduce((a,q)=>a+q.x,0)/n,y:p.reduce((a,q)=>a+q.y,0)/n,d:n>1?Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y):0}}
+out.addEventListener('pointerdown',e=>{if(!S.base||!S.pz)return;out.setPointerCapture(e.pointerId);P.set(e.pointerId,{x:e.clientX,y:e.clientY});last=gesture();out.style.cursor='grabbing'});
+out.addEventListener('pointermove',e=>{
+  if(!P.has(e.pointerId))return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});const g=gesture();
+  if(last&&last.n===g.n){
+    const r=out.getBoundingClientRect(),v=view();
+    setView(v.sx-(g.x-last.x)*v.sw/r.width,v.sy-(g.y-last.y)*v.sh/r.height,v.sw,v.sh);
+    if(g.n>1&&last.d>0)zoomBy(g.d/last.d,(g.x-r.left)/r.width,(g.y-r.top)/r.height);else render();
+  }
+  last=g});
+['pointerup','pointercancel'].forEach(ev=>out.addEventListener(ev,e=>{P.delete(e.pointerId);last=gesture();out.style.cursor=S.pz?'grab':'default'}));
+out.addEventListener('wheel',e=>{if(!S.base||!S.pz)return;e.preventDefault();const r=out.getBoundingClientRect();zoomBy(Math.exp(-e.deltaY*.0015),(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height)},{passive:false});
+
+// inputs
+$('#pick').onclick=$('#new').onclick=()=>$('#f1').click();
+$('#cam').onclick=()=>$('#f2').click();
+['#f1','#f2'].forEach(s=>$(s).addEventListener('change',e=>{load(e.target.files[0]);e.target.value=''}));
+const st=$('#stage');
+['dragenter','dragover'].forEach(ev=>st.addEventListener(ev,e=>{e.preventDefault();st.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>st.addEventListener(ev,e=>{e.preventDefault();st.classList.remove('drag')}));
+st.addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+window.addEventListener('paste',e=>{const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith('image/'));if(f)load(f)});
+
+// ---------- front and back ----------
+function go(i){
+  sync();cur=i;F.forEach(k=>S[k]=sides[i][k]);
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.classList.toggle('on',j===i));
+  document.body.classList.toggle('has',!!S.base);
+  $('#ep').textContent='Drop a photo of the '+(i?'back':'front')+' of your ID here, or paste one.';
+  $('#trim').value=S.trim;if(S.base)render();
+}
+$('#tabs').addEventListener('click',e=>{const i=e.target.dataset.s;if(i!=null)go(+i)});
+$('#ep').textContent='Drop a photo of the front of your ID here, or paste one.';
+
+// ---------- card size ----------
+function csz(i){
+  const o=side(i);
+  if(S.mode==='orig')return{w:S.ow,h:S.ow/(o.base?o.base.width/o.base.height:S.cw/S.ch)};
+  return{w:S.cw,h:S.ch};
+}
+function limits(){const m=Math.max(Math.floor((PH-csz(0).h-csz(1).h)/2*2)/2,5);$('#mg').max=m;return m}
+function applySize(){
+  const v=$('#size').value;$('#cust').style.display=v==='c'?'flex':'none';$('#orig').style.display=v==='o'?'flex':'none';
+  if(v==='o'){S.mode='orig';S.ow=clamp(+$('#ow').value||85.6,20,200)}
+  else{S.mode='card';if(v==='c'){S.cw=clamp(+$('#cw').value||85.6,20,200);S.ch=clamp(+$('#ch').value||54,20,140)}else{S.cw=85.6;S.ch=54}}
+  const m=limits();setMargin(S.mode==='orig'?clamp(L.m,5,m):clamp(51,5,m));render();
+}
+function afterSize(){if(S.mode==='orig'){const m=limits();setMargin(clamp(L.m,5,m))}}
+$('#size').onchange=applySize;['#cw','#ch','#ow'].forEach(q=>$(q).onchange=applySize);
+
+// ---------- A4 layout ----------
+function setMargin(m){
+  m=clamp(m,+$('#mg').min,+$('#mg').max);L.m=m;$('#mg').value=m;$('#mgV').textContent=m.toFixed(1)+' mm';
+  const a=csz(0),b=csz(1);L.pos=[{x:(PW-a.w)/2,y:m},{x:(PW-b.w)/2,y:PH-m-b.h}];placeCards();
+}
+$('#lr').onclick=()=>setMargin(L.m);
+function placeCards(){
+  pg.querySelectorAll('.cd').forEach((el,i)=>{const p=L.pos[i],z=csz(i);
+    Object.assign(el.style,{left:p.x/PW*100+'%',top:p.y/PH*100+'%',width:z.w/PW*100+'%',height:z.h/PH*100+'%',borderRadius:S.radius+'%/'+(S.radius*z.w/z.h)+'%'})});
+  $('#rd').textContent=L.pos.map((p,i)=>(i?'Back ':'Front ')+p.x.toFixed(1)+', '+p.y.toFixed(1)+' mm').join(' · ');
+}
+let tq;function queueThumb(){
+  clearTimeout(tq);tq=setTimeout(()=>{
+    pg.querySelectorAll('.cd').forEach((el,i)=>{const o=side(i);el.classList.toggle('e',!o.base);if(o.base)drawCard(o,el.firstChild,null,320)});
+    placeCards();
+  },150);
+}
+function snap(x,y,i,th){
+  const o=L.pos[1-i],z=csz(i),oz=csz(1-i);let gv=null,gh=null;
+  const pick=(vals,targets)=>{let b={d:th+1};vals.forEach(a=>targets.forEach(t=>{const d=Math.abs(t-a);if(d<b.d)b={d,s:t-a,g:t}}));return b.d<=th?b:null};
+  const bx=pick([x,x+z.w/2,x+z.w],[PW/2,o.x,o.x+oz.w/2,o.x+oz.w,0,PW]);if(bx){x+=bx.s;gv=bx.g}
+  const sym=PH-(o.y+oz.h),eq=i===0?(o.y-z.h)/2:(PH+o.y+oz.h-z.h)/2;
+  const by=pick([y,y+z.h/2,y+z.h],[PH/2,o.y,o.y+oz.h/2,o.y+oz.h,0,PH]),sp=pick([y],[sym,eq]);
+  const best=by&&sp?(sp.d<=by.d?sp:by):(by||sp);
+  if(best){y+=best.s;gh=best.g}
+  return{x,y,gv,gh};
+}
+let dr=null;
+function guides(gv,gh){const v=$('#gv'),h=$('#gh');v.style.display=gv==null?'none':'block';h.style.display=gh==null?'none':'block';if(gv!=null)v.style.left=gv/PW*100+'%';if(gh!=null)h.style.top=gh/PH*100+'%'}
+pg.addEventListener('pointerdown',e=>{const el=e.target.closest('.cd');if(!el)return;el.setPointerCapture(e.pointerId);const i=+el.dataset.i;dr={i,x0:e.clientX,y0:e.clientY,px:L.pos[i].x,py:L.pos[i].y};el.focus()});
+pg.addEventListener('pointermove',e=>{
+  if(!dr)return;const r=pg.getBoundingClientRect(),k=PW/r.width,z=csz(dr.i);let dx=(e.clientX-dr.x0)*k,dy=(e.clientY-dr.y0)*k;
+  if(e.shiftKey){if(Math.abs(dx)>Math.abs(dy))dy=0;else dx=0}
+  let x=clamp(dr.px+dx,0,PW-z.w),y=clamp(dr.py+dy,0,PH-z.h);
+  const s=snap(x,y,dr.i,6*k);x=s.x;y=s.y;if(s.gv==null)x=Math.round(x*10)/10;if(s.gh==null)y=Math.round(y*10)/10;
+  if(e.shiftKey){if(dx===0)x=dr.px;if(dy===0)y=dr.py}
+  L.pos[dr.i]={x,y};placeCards();guides(s.gv,s.gh)});
+['pointerup','pointercancel'].forEach(ev=>pg.addEventListener(ev,()=>{dr=null;guides(null,null)}));
+pg.addEventListener('keydown',e=>{
+  const el=e.target.closest('.cd');if(!el||!e.key.startsWith('Arrow'))return;e.preventDefault();
+  const i=+el.dataset.i,st=e.shiftKey?1:.1,p=L.pos[i],z=csz(i);
+  const dx={ArrowLeft:-st,ArrowRight:st}[e.key]||0,dy={ArrowUp:-st,ArrowDown:st}[e.key]||0;
+  L.pos[i]={x:Math.round(clamp(p.x+dx,0,PW-z.w)*10)/10,y:Math.round(clamp(p.y+dy,0,PH-z.h)*10)/10};placeCards()});
+
+// ---------- PDF and layout image (one card at a time, capped at 600 dpi) ----------
+function ready(){sync();const ids=[0,1].filter(i=>sides[i].base);if(!ids.length)toast('Add a front or back photo first.');return ids}
+async function makePdf(){
+  const ids=ready();if(!ids.length)return;
+  const btn=$('#pdf');btn.disabled=true;toast('Building PDF…');
+  try{
+    const imgs=[];
+    for(const i of ids){
+      const cv=document.createElement('canvas');drawCard(sides[i],cv,'#ffffff',capW(i),false);
+      const w=cv.width,h=cv.height,b=await toBlob(cv,'image/jpeg',.93);free(cv);
+      imgs.push({i,w,h,data:new Uint8Array(await b.arrayBuffer())});
+    }
+    const k=72/25.4,enc=new TextEncoder(),parts=[new Uint8Array([37,80,68,70,45,49,46,52,10,37,226,227,207,211,10])],offs=[];
+    let len=parts[0].length;
+    const add=b=>{if(typeof b==='string')b=enc.encode(b);parts.push(b);len+=b.length};
+    const obj=(n,head,stream)=>{offs[n]=len;add(n+' 0 obj\n'+head+'\n');if(stream){add('stream\n');add(stream);add('\nendstream\n')}add('endobj\n')};
+    const f4=v=>v.toFixed(4);
+    let content='';imgs.forEach((m,n)=>{const p=L.pos[m.i],z=csz(m.i);content+='q '+f4(z.w*k)+' 0 0 '+f4(z.h*k)+' '+f4(p.x*k)+' '+f4((PH-p.y-z.h)*k)+' cm /Im'+n+' Do Q\n'});
+    const cs=enc.encode(content);
+    obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+    obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+f4(PW*k)+' '+f4(PH*k)+'] /Resources << /XObject << '+imgs.map((m,n)=>'/Im'+n+' '+(5+n)+' 0 R').join(' ')+' >> >> /Contents 4 0 R >>');
+    obj(4,'<< /Length '+cs.length+' >>',cs);
+    imgs.forEach((m,n)=>obj(5+n,'<< /Type /XObject /Subtype /Image /Width '+m.w+' /Height '+m.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+m.data.length+' >>',m.data));
+    const total=5+imgs.length,xr=len;let x='xref\n0 '+total+'\n0000000000 65535 f \n';
+    for(let n=1;n<total;n++)x+=String(offs[n]).padStart(10,'0')+' 00000 n \n';
+    add(x+'trailer\n<< /Size '+total+' /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');
+    await saveBlob(new Blob(parts,{type:'application/pdf'}),fname()+'.pdf');
+  }catch(e){toast('The PDF could not be built. Try again.')}
+  btn.disabled=false;
+}
+async function makeImage(){
+  const ids=ready();if(!ids.length)return;
+  const btn=$('#pimg');btn.disabled=true;toast('Saving layout…');
+  try{
+    const jpg=S.fmt==='jpg',k=300/25.4,c=document.createElement('canvas');c.width=Math.round(PW*k);c.height=Math.round(PH*k);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+    ids.forEach(i=>{const z=csz(i),p=L.pos[i];paintCard(x,sides[i],p.x*k,p.y*k,z.w*k,z.h*k,false)});
+    const b=await toBlob(c,jpg?'image/jpeg':'image/png',.95);free(c);
+    await saveBlob(b,fname()+'.'+(jpg?'jpg':'png'));
+  }catch(e){toast('The image could not be saved. Try again.')}
+  btn.disabled=false;
+}
+$('#pdf').onclick=makePdf;$('#pimg').onclick=makeImage;
+
+// ---------- keep the photo alive when returning to the tab ----------
+function refreshAll(){if(S.base)render();queueThumb()}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshAll()});
+addEventListener('pageshow',refreshAll);addEventListener('focus',refreshAll);
+out.addEventListener('contextrestored',refreshAll);
+
+applySize();
+</script>
+</body>
+</html>
